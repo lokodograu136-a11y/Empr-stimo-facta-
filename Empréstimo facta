@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EmprestaFácil - Empréstimos para Lojistas</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #0ea5e9;
+            --success: #10b981;
+            --danger: #ef4444;
+            --dark: #1e293b;
+            --light: #f8fafc;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f1f5f9;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            background: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-size: 1rem;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+        }
+
+        .loan-item {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .loan-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .status {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status.paid {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .status.unpaid {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 0.5rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💰 EmprestaFácil</h1>
+            <p>Gerencie empréstimos para lojistas com facilidade e segurança</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="dashboard">📊 Dashboard</button>
+            <button class="tab-btn" data-tab="new-loan">➕ Novo Empréstimo</button>
+            <button class="tab-btn" data-tab="clients">👥 Clientes</button>
+            <button class="tab-btn" data-tab="loans">📋 Empréstimos</button>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboard" class="tab-content active">
+            <div class="stats">
+                <div class="stat-card">
+                    <h3>Empréstimos Ativos</h3>
+                    <div class="stat-value" id="active-loans">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Valor a Receber</h3>
+                    <div class="stat-value" id="total-to-receive">R$ 0,00</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Clientes Cadastrados</h3>
+                    <div class="stat-value" id="total-clients">0</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Últimos Empréstimos</h3>
+                <div id="recent-loans">
+                    <p>Nenhum empréstimo registrado ainda.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Novo Empréstimo -->
+        <div id="new-loan" class="tab-content">
+            <div class="card">
+                <h2>Novo Empréstimo</h2>
+                <form id="loan-form">
+                    <div class="form-group">
+                        <label for="client-select">Selecione o Cliente</label>
+                        <select id="client-select" required>
+                            <option value="">-- Selecione um cliente --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="loan-amount">Valor Emprestado (R$)</label>
+                        <input type="number" id="loan-amount" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="interest-rate">Taxa de Juros Mensal (%)</label>
+                        <input type="number" id="interest-rate" step="0.01" min="0" value="5" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="due-date">Data de Vencimento</label>
+                        <input type="date" id="due-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="amount-to-receive">Valor a Receber (R$)</label>
+                        <input type="text" id="amount-to-receive" readonly>
+                    </div>
+                    <button type="submit">Registrar Empréstimo</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Clientes -->
+        <div id="clients" class="tab-content">
+            <div class="card">
+                <h2>Cadastrar Novo Cliente</h2>
+                <form id="client-form">
+                    <div class="form-group">
+                        <label for="client-name">Nome Completo</label>
+                        <input type="text" id="client-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="client-phone">Telefone</label>
+                        <input type="tel" id="client-phone" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="client-business">Nome da Loja</label>
+                        <input type="text" id="client-business">
+                    </div>
+                    <button type="submit">Cadastrar Cliente</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h3>Clientes Cadastrados</h3>
+                <div id="clients-list">
+                    <p>Nenhum cliente cadastrado ainda.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empréstimos -->
+        <div id="loans" class="tab-content">
+            <div class="card">
+                <h2>Todos os Empréstimos</h2>
+                <div id="loans-list">
+                    <p>Nenhum empréstimo registrado ainda.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Armazenamento local (simulado)
+        let clients = JSON.parse(localStorage.getItem('clients') || '[]');
+        let loans = JSON.parse(localStorage.getItem('loans') || '[]');
+
+        // Elementos
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const clientSelect = document.getElementById('client-select');
+        const loanForm = document.getElementById('loan-form');
+        const clientForm = document.getElementById('client-form');
+        const amountToReceive = document.getElementById('amount-to-receive');
+        const loanAmount = document.getElementById('loan-amount');
+        const interestRate = document.getElementById('interest-rate');
+
+        // Atualizar valor a receber quando valor ou juros mudarem
+        [loanAmount, interestRate].forEach(input => {
+            input.addEventListener('input', calculateAmountToReceive);
+        });
+
+        function calculateAmountToReceive() {
+            const principal = parseFloat(loanAmount.value) || 0;
+            const rate = parseFloat(interestRate.value) || 0;
+            const amount = principal * (1 + rate / 100);
+            amountToReceive.value = `R$ ${amount.toFixed(2).replace('.', ',')}`;
+        }
+
+        // Trocar abas
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.getAttribute('data-tab');
+                
+                tabBtns.forEach(b => b.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                
+                btn.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+                
+                // Atualizar conteúdo dinâmico
+                if (tabId === 'dashboard') updateDashboard();
+                if (tabId === 'new-loan') updateClientSelect();
+                if (tabId === 'clients') updateClientsList();
+                if (tabId === 'loans') updateLoansList();
+            });
+        });
+
+        // Cadastrar cliente
+        clientForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('client-name').value;
+            const phone = document.getElementById('client-phone').value;
+            const business = document.getElementById('client-business').value;
+            
+            const client = {
+                id: Date.now(),
+                name,
+                phone,
+                business,
+                createdAt: new Date().toISOString()
+            };
+            
+            clients.push(client);
+            localStorage.setItem('clients', JSON.stringify(clients));
+            clientForm.reset();
+            updateClientSelect();
+            updateClientsList();
+            updateDashboard();
+            alert('Cliente cadastrado com sucesso!');
+        });
+
+        // Registrar empréstimo
+        loanForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const clientId = parseInt(clientSelect.value);
+            const amount = parseFloat(loanAmount.value);
+            const rate = parseFloat(interestRate.value);
+            const dueDate = document.getElementById('due-date').value;
+            
+            const client = clients.find(c => c.id === clientId);
+            if (!client) {
+                alert('Selecione um cliente válido!');
+                return;
+            }
+            
+            const loan = {
+                id: Date.now(),
+                clientId,
+                clientName: client.name,
+                amount,
+                rate,
+                dueDate,
+                amountToReceive: amount * (1 + rate / 100),
+                status: 'unpaid',
+                createdAt: new Date().toISOString()
+            };
+            
+            loans.push(loan);
+            localStorage.setItem('loans', JSON.stringify(loans));
+            loanForm.reset();
+            amountToReceive.value = '';
+            updateDashboard();
+            updateLoansList();
+            alert('Empréstimo registrado com sucesso!');
+        });
+
+        // Atualizar seleção de clientes
+        function updateClientSelect() {
+            clientSelect.innerHTML = '<option value="">-- Selecione um cliente --</option>';
+            clients.forEach(client => {
+                const option = document.createElement('option');
+                option.value = client.id;
+                option.textContent = `${client.name} - ${client.business || 'Sem loja'}`;
+                clientSelect.appendChild(option);
+            });
+        }
+
+        // Atualizar lista de clientes
+        function updateClientsList() {
+            const list = document.getElementById('clients-list');
+            if (clients.length === 0) {
+                list.innerHTML = '<p>Nenhum cliente cadastrado ainda.</p>';
+                return;
+            }
+            
+            list.innerHTML = '';
+            clients.forEach(client => {
+                const div = document.createElement('div');
+                div.className = 'loan-item';
+                div.innerHTML = `
+                    <div class="loan-header">
+                        <strong>${client.name}</strong>
+                        <span>${client.business || '—'}</span>
+                    </div>
+                    <div>📞 ${client.phone}</div>
+                    <div>📅 Cadastrado em: ${new Date(client.createdAt).toLocaleDateString('pt-BR')}</div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        // Atualizar lista de empréstimos
+        function updateLoansList() {
+            const list = document.getElementById('loans-list');
+            if (loans.length === 0) {
+                list.innerHTML = '<p>Nenhum empréstimo registrado ainda.</p>';
+                return;
+            }
+            
+            list.innerHTML = '';
+            loans.slice().reverse().forEach(loan => {
+                const div = document.createElement('div');
+                div.className = 'loan-item';
+                div.innerHTML = `
+                    <div class="loan-header">
+                        <strong>${loan.clientName}</strong>
+                        <span class="status ${loan.status}">${loan.status === 'paid' ? 'Pago' : 'Pendente'}</span>
+                    </div>
+                    <div>💵 Emprestado: R$ ${loan.amount.toFixed(2).replace('.', ',')}</div>
+                    <div>📈 A receber: R$ ${loan.amountToReceive.toFixed(2).replace('.', ',')}</div>
+                    <div>📅 Vencimento: ${new Date(loan.dueDate).toLocaleDateString('pt-BR')}</div>
+                    <div>📊 Juros: ${loan.rate}%</div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        // Atualizar dashboard
+        function updateDashboard() {
+            const activeLoans = loans.filter(l => l.status === 'unpaid').length;
+            const totalToReceive = loans
+                .filter(l => l.status === 'unpaid')
+                .reduce((sum, loan) => sum + loan.amountToReceive, 0);
+            const totalClientsCount = clients.length;
+
+            document.getElementById('active-loans').textContent = activeLoans;
+            document.getElementById('total-to-receive').textContent = `R$ ${totalToReceive.toFixed(2).replace('.', ',')}`;
+            document.getElementById('total-clients').textContent = totalClientsCount;
+
+            // Últimos empréstimos
+            const recentLoans = document.getElementById('recent-loans');
+            const recent = loans.slice(-5).reverse();
+            if (recent.length === 0) {
+                recentLoans.innerHTML = '<p>Nenhum empréstimo registrado ainda.</p>';
+                return;
+            }
+
+            recentLoans.innerHTML = '';
+            recent.forEach(loan => {
+                const div = document.createElement('div');
+                div.className = 'loan-item';
+                div.innerHTML = `
+                    <div class="loan-header">
+                        <strong>${loan.clientName}</strong>
+                        <span class="status ${loan.status}">${loan.status === 'paid' ? 'Pago' : 'Pendente'}</span>
+                    </div>
+                    <div>📈 R$ ${loan.amountToReceive.toFixed(2).replace('.', ',')} - ${new Date(loan.dueDate).toLocaleDateString('pt-BR')}</div>
+                `;
+                recentLoans.appendChild(div);
+            });
+        }
+
+        // Inicializar
+        updateClientSelect();
+        updateDashboard();
+    </script>
+</body>
+</html>
